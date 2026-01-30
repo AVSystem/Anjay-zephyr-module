@@ -1,0 +1,91 @@
+# Copyright 2026 AVSystem <avsystem@avsystem.com>
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+menu "Anjay LwM2M library"
+
+config ANJAY_ZEPHYR
+    bool "Anjay LwM2M library support"
+
+config ANJAY_ZEPHYR_COMPAT_DEFAULT
+    bool "Default implementation of Anjay integration with Zephyr."
+    default y
+
+# placing it here because:
+# - it doesn't work after ANJAY_ZEPHYR_LOG_COMPAT_DEFAULT help section
+# - ANJAY_ZEPHYR_LOG_COMPAT_DEFAULT help section doesn't work after this
+module = ANJAY_ZEPHYR
+module-str = Log level for Anjay
+source "subsys/logging/Kconfig.template.log_config"
+
+menu "Compat layer configuration"
+    visible if !ANJAY_ZEPHYR_COMPAT_DEFAULT
+
+    menuconfig ANJAY_ZEPHYR_LOG_COMPAT_DEFAULT
+        bool "Default logging compat implementation"
+        default y
+        depends on LOG
+        help
+            If disabled, application must provide implementation of the following macros:
+            AVS_LOG__TRACE, AVS_LOG__LAZY_TRACE,
+            AVS_LOG__DEBUG, AVS_LOG__LAZY_DEBUG,
+            AVS_LOG__INFO, AVS_LOG__LAZY_INFO,
+            AVS_LOG__WARNING, AVS_LOG__LAZY_WARNING,
+            AVS_LOG__ERROR, AVS_LOG__LAZY_ERROR
+            or implement their own logging handler and set it using avs_log_set_handler()
+            or avs_log_set_extended_handler()
+
+    config ANJAY_ZEPHYR_THREADING_COMPAT_DEFAULT
+        bool "Default threading compat implementation"
+        default y
+        help
+            If disabled, application must provide implementation of the following functions:
+            avs_condvar_create()
+            avs_condvar_notify_all()
+            avs_condvar_wait()
+            avs_condvar_cleanup()
+            avs_mutex_create()
+            avs_mutex_lock()
+            avs_mutex_try_lock()
+            avs_mutex_unlock()
+            avs_mutex_cleanup()
+            avs_init_once()
+
+    config ANJAY_ZEPHYR_NET_COMPAT_DEFAULT
+        bool "Default networking compat implementation"
+        default y
+        help
+            If disabled, application must provide implementation of the following functions:
+            _avs_net_initialize_global_compat_state()
+            _avs_net_cleanup_global_compat_state()
+            avs_net_resolved_endpoint_get_host_port()
+            _avs_net_create_udp_socket() and/or _avs_net_create_tcp_socket()
+            and avs_net_socket_v_table_t functions
+
+    config ANJAY_ZEPHYR_MBEDTLS_COMPAT_DEFAULT
+        bool "Default MbedTLS compat implementation"
+        default y
+        help
+            If disabled, application must provide implementation of the following functions:
+            mbedtls_timing_set_delay()
+            mbedtls_timing_get_delay()
+
+    config ANJAY_ZEPHYR_TIME_COMPAT_DEFAULT
+        bool "Default time compat implementation"
+        default y
+        help
+            If disabled, application must provide implementation of the following functions:
+            avs_time_monotonic_now()
+            avs_time_real_now()
+endmenu
+endmenu
